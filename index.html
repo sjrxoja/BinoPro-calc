@@ -276,8 +276,8 @@ async function loadFromAirtable(){
       const block = BLOCKS.find(b => b.area === areaKey);
       if(block){
         if(typeof f["Продано"] === "number") block.sold = f["Продано"];
-        if(typeof f["Наценка 50% (при 36 мес)"] === "number") block.m50 = f["Наценка 50% (при 36 мес)"];
-        if(typeof f["Наценка 30% (при 36 мес)"] === "number") block.m30 = f["Наценка 30% (при 36 мес)"];
+        if(typeof f["Наценка 50% (при 30 мес)"] === "number") block.m50 = f["Наценка 50% (при 30 мес)"];
+        if(typeof f["Наценка 30% (при 30 мес)"] === "number") block.m30 = f["Наценка 30% (при 30 мес)"];
         if(typeof f["Шаг срока (шт. продаж)"] === "number") block.step = f["Шаг срока (шт. продаж)"];
       }
     });

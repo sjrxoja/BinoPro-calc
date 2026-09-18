@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Прайс-калькулятор BinoPro</title>
+<style>
+  :root{
+    --bg: #F7F6F2;
+    --paper: #FFFFFF;
+    --ink: #1B2430;
+    --ink-soft: #5B6472;
+    --line: #E4E1D6;
+    --brass: #A9793F;
+    --brass-soft: #F1E6D6;
+    --green: #2F6F4E;
+    --green-soft: #E8F1EC;
+    --amber: #9A6A1E;
+    --amber-soft: #FBF1DE;
+    --radius: 4px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family: Georgia, 'Times New Roman', serif;
+    -webkit-font-smoothing:antialiased;
+    padding: 28px 16px 60px;
+  }
+  .wrap{max-width: 720px; margin: 0 auto;}
+
+  .masthead{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 14px;
+    margin-bottom: 20px;
+  }
+  .masthead h1{ font-size: 22px; font-weight: 400; margin:0; }
+  .masthead .tag{
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 11px; color: var(--ink-soft);
+  }
+
+  .status{
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    display:flex; align-items:center; gap:6px;
+    margin-bottom: 18px;
+  }
+  .dot{ width:7px; height:7px; border-radius:50%; background: var(--green); flex:none; }
+  .dot.offline{ background: var(--amber); }
+
+  .panel{
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+
+  label{
+    display:block;
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 6px;
+  }
+
+  select, input[type=number]{
+    width:100%;
+    font-family: Georgia, serif;
+    font-size: 17px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .grid2{
+    display:grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-top: 16px;
+  }
+  @media (max-width: 520px){ .grid2{ grid-template-columns: 1fr; } }
+
+  .field{ margin-top: 0; }
+
+  .base-price{
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .base-price b{
+    font-family: 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight: normal;
+  }
+
+  .result{
+    background: var(--paper);
+    border: 1px solid var(--brass);
+    border-radius: var(--radius);
+    padding: 22px;
+  }
+  .result .label{
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px; color: var(--ink-soft);
+  }
+  .result .big{
+    font-family: 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 30px;
+    margin: 4px 0 4px;
+  }
+  .result .sub{
+    font-family: 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: 14px;
+    color: var(--ink-soft);
+    margin-bottom: 16px;
+  }
+  .result .detail{
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    display:flex;
+    justify-content:space-between;
+    padding: 7px 0;
+    border-top: 1px solid var(--line);
+  }
+  .result .detail b{
+    font-family: 'Courier New', monospace;
+    font-variant-numeric: tabular-nums;
+    color: var(--ink);
+    font-weight:normal;
+  }
+
+  .warn{
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 12px;
+    color: var(--amber);
+    background: var(--amber-soft);
+    border-radius: var(--radius);
+    padding: 8px 12px;
+    margin-top: 14px;
+  }
+
+  .joke{
+    font-family: Georgia, serif;
+    font-style: italic;
+    font-size: 13.5px;
+    color: var(--ink-soft);
+    padding: 14px 18px;
+    margin-top: 14px;
+    border-left: 2px solid var(--brass);
+  }
+  .joke p{ margin: 0 0 8px; }
+  .joke p:last-child{ margin-bottom: 0; }
+
+  .hidden{ display:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <h1>Прайс-калькулятор</h1>
+    <div class="tag">BinoPro · для отдела продаж</div>
+  </div>
+
+  <div class="status"><span class="dot" id="statusDot"></span><span id="statusText">подключение к базе…</span></div>
+
+  <div class="panel hidden" id="tokenPanel">
+    <label for="tokenInput">Airtable-токен (вводится один раз, хранится только в этом браузере)</label>
+    <div style="display:flex; gap:8px;">
+      <input type="password" id="tokenInput" placeholder="patXXXXXXXXXXXXXX..." style="flex:1;">
+      <button id="tokenSave" style="padding:0 16px; border-radius:4px; border:1px solid var(--brass); background:var(--brass); color:#fff; font-family:Georgia,serif; cursor:pointer;">Сохранить</button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <label for="areaSelect">Площадь квартиры</label>
+    <select id="areaSelect"></select>
+    <div class="base-price" id="availLine" style="margin-top:8px; padding-top:0; border-top:none;"></div>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="pctInput">Взнос, %</label>
+        <input type="number" id="pctInput" value="50" min="1" max="100" step="1">
+      </div>
+      <div class="field" id="termField">
+        <label for="termInput">Срок рассрочки, мес</label>
+        <input type="number" id="termInput" value="24" min="1" step="1">
+      </div>
+    </div>
+
+    <div class="grid2">
+      <div class="field">
+        <label for="rate100Input">Курс для 100% оплаты, сум/$</label>
+        <input type="number" id="rate100Input" value="11800" min="1" step="1">
+      </div>
+      <div class="field">
+        <label for="rateInstallmentInput">Курс для рассрочки, сум/$</label>
+        <input type="number" id="rateInstallmentInput" value="12000" min="1" step="1">
+      </div>
+    </div>
+
+    <div class="base-price" id="basePrice"></div>
+  </div>
+
+  <div class="result" id="resultPanel"></div>
+
+  <div class="joke" id="jokePanel"></div>
+
+  <div class="warn hidden" id="extrapWarn">Взнос ниже 30% — цена рассчитана по экстраполяции, уточните с РОПом перед тем, как называть её клиенту.</div>
+
+</div>
+
+<script>
+// ====== НАСТРОЙКА ДОСТУПА К AIRTABLE (заполняет админ один раз) ======
+let AIRTABLE_TOKEN = localStorage.getItem('binopro_airtable_token') || "";
+const AIRTABLE_BASE_ID = "appx2JPTDf4qnIyBT";
+const AIRTABLE_TABLE_ID = "tblf5yHSuPGEepiDI";
+const AIRTABLE_RATE_TABLE_ID = "tblBqqf7tv6XfC2Hw";
+// =======================================================================
+
+const HORIZON = 36;
+let RATE = 11800; // резервный курс для 100% оплаты, используется пока не подтянулся живой
+let INSTALLMENT_RATE = 12000; // курс для рассрочки (50%/30%) — редактируется вручную в калькуляторе
+
+// Резервные (офлайн) данные — используются, если не удалось получить доступ к базе
+const FALLBACK_BLOCKS = [
+  {area:"26,30", n:11, prices:[2000,2032,2065,2098,2131,2165,2200,2235,2271,2307,2344], m50:0.115, m30:0.185, step:2, sold:0},
+  {area:"39,35", n:22, prices:[1960,1976,1991,2007,2023,2040,2056,2072,2089,2106,2123,2140,2157,2174,2191,2209,2227,2244,2262,2280,2299,2317], m50:0.1148, m30:0.1837, step:4, sold:0},
+  {area:"46,79", n:11, prices:[1940,1971,2003,2035,2067,2100,2134,2168,2203,2238,2274], m50:0.1134, m30:0.1856, step:2, sold:0},
+  {area:"51,34", n:11, prices:[1910,1941,1972,2003,2035,2068,2101,2134,2169,2203,2239], m50:0.1152, m30:0.1832, step:2, sold:0},
+  {area:"51,94", n:11, prices:[1910,1941,1972,2003,2035,2068,2101,2134,2169,2203,2239], m50:0.1152, m30:0.1832, step:2, sold:0},
+  {area:"52,62", n:22, prices:[1920,1935,1951,1966,1982,1998,2014,2030,2046,2063,2079,2096,2113,2130,2147,2164,2181,2199,2216,2234,2252,2270], m50:0.1146, m30:0.1849, step:4, sold:0},
+  {area:"87,75", n:11, prices:[1900,1930,1961,1993,2025,2057,2090,2123,2157,2192,2227], m50:0.1158, m30:0.1842, step:2, sold:0},
+  {area:"111,31",n:11, prices:[1900,1930,1961,1993,2025,2057,2090,2123,2157,2192,2227], m50:0.1158, m30:0.1842, step:2, sold:0},
+];
+
+let BLOCKS = JSON.parse(JSON.stringify(FALLBACK_BLOCKS));
+
+function mround(x, m){ return Math.round(x/m)*m; }
+function fmt(n){ return Math.round(n).toLocaleString('ru-RU'); }
+function fmtSum(usd){ return (Math.round(usd*RATE/1000)*1000).toLocaleString('ru-RU'); }
+function fmtSumInstallment(usd){ return (Math.round(usd*INSTALLMENT_RATE/1000)*1000).toLocaleString('ru-RU'); }
+function areaToFloat(a){ return parseFloat(a.replace(',', '.')); }
+
+async function loadFromAirtable(){
+  if(!AIRTABLE_TOKEN){
+    setStatus(false, "база не подключена — вставьте токен ниже");
+    document.getElementById('tokenPanel').classList.remove('hidden');
+    return;
+  }
+  try{
+    const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_TABLE_ID}`, {
+      headers: { "Authorization": "Bearer " + AIRTABLE_TOKEN }
+    });
+    if(!res.ok) throw new Error("HTTP " + res.status);
+    const data = await res.json();
+    data.records.forEach(rec => {
+      const f = rec.fields;
+      const areaKey = f["Площадь, м²"];
+      const block = BLOCKS.find(b => b.area === areaKey);
+      if(block){
+        if(typeof f["Продано"] === "number") block.sold = f["Продано"];
+        if(typeof f["Наценка 50% (при 36 мес)"] === "number") block.m50 = f["Наценка 50% (при 36 мес)"];
+        if(typeof f["Наценка 30% (при 36 мес)"] === "number") block.m30 = f["Наценка 30% (при 36 мес)"];
+        if(typeof f["Шаг срока (шт. продаж)"] === "number") block.step = f["Шаг срока (шт. продаж)"];
+      }
+    });
+    try{
+      const resRate = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE_ID}/${AIRTABLE_RATE_TABLE_ID}`, {
+        headers: { "Authorization": "Bearer " + AIRTABLE_TOKEN }
+      });
+      if(resRate.ok){
+        const rateData = await resRate.json();
+        const rec = rateData.records[0];
+        if(rec && typeof rec.fields["Курс UZS за 1 USD"] === "number"){
+          RATE = rec.fields["Курс UZS за 1 USD"];
+          document.getElementById('rate100Input').value = RATE;
+        }
+      }
+    } catch(e2){ /* курс останется резервным */ }
+
+    setStatus(true, "данные из базы обновлены только что");
+  } catch(e){
+    setStatus(false, "нет связи с базой — показаны сохранённые данные");
+  }
+}
+
+function setStatus(online, text){
+  document.getElementById('statusDot').classList.toggle('offline', !online);
+  document.getElementById('statusText').textContent = text;
+}
+
+document.getElementById('tokenSave').addEventListener('click', () => {
+  const v = document.getElementById('tokenInput').value.trim();
+  if(v){
+    localStorage.setItem('binopro_airtable_token', v);
+    AIRTABLE_TOKEN = v;
+    document.getElementById('tokenPanel').classList.add('hidden');
+    loadFromAirtable().then(render);
+  }
+});
+
+function markupForPct(block, pct){
+  if(pct >= 100) return 0;
+  if(pct >= 50) return block.m50 * (100 - pct) / 50;
+  if(pct >= 30) return block.m50 + (block.m30 - block.m50) * (50 - pct) / 20;
+  // экстраполяция ниже 30%
+  const slope = (block.m30 - block.m50) / 20;
+  return block.m30 + slope * (30 - pct);
+}
+
+const areaSelect = document.getElementById('areaSelect');
+function populateAreas(){
+  areaSelect.innerHTML = "";
+  BLOCKS.forEach((b, idx) => {
+    const opt = document.createElement('option');
+    opt.value = idx;
+    opt.textContent = `${b.area} м²`;
+    areaSelect.appendChild(opt);
+  });
+}
+populateAreas();
+
+function currentBlock(){ return BLOCKS[parseInt(areaSelect.value, 10)]; }
+
+const AREA_FLAVOR = {
+  "26,30": "студия без лишнего",
+  "39,35": "золотая середина по метрам",
+  "46,79": "с местом под гардеробную",
+  "51,34": "первая из двух похожих",
+  "51,94": "вторая из двух похожих, но с характером",
+  "52,62": "на полметра просторнее соседей",
+  "87,75": "уже не квартира, а зоны",
+  "111,31": "заявление городу, а не квартира",
+};
+
+function paymentLine(pct, term){
+  if(pct >= 100) return "оплата сразу — моя любимая категория клиентов";
+  if(pct >= 50) return `взнос ${pct}% на ${term} мес. — разумно и без спешки`;
+  if(pct >= 30) return `взнос ${pct}% на ${term} мес. — рассрочка с умом`;
+  return `взнос ${pct}% — смело, но сверьтесь с РОПом`;
+}
+
+function ownerComment(block, pct, term){
+  return `Владелец: «${AREA_FLAVOR[block.area] || block.area} — ${paymentLine(pct, term)}».`;
+}
+
+function render(){
+  const block = currentBlock();
+  const sold = Math.min(block.sold, block.n - 1);
+  const remainUnits = block.n - sold;
+  const price100 = block.prices[sold];
+
+  document.getElementById('availLine').innerHTML =
+    `Продано: <b>${sold}</b> · Осталось: <b>${remainUnits}</b> · Всего: <b>${block.n}</b>`;
+
+  document.getElementById('basePrice').innerHTML =
+    `Текущая цена 100% (продано ${sold} из ${block.n}): <b>${fmtSum(price100)} сум/м²</b> (~$${fmt(price100)}) · площадь <b>${block.area} м²</b>`;
+
+  const pct = parseFloat(document.getElementById('pctInput').value) || 100;
+  const termInput = document.getElementById('termInput');
+  const termField = document.getElementById('termField');
+  const extrapWarn = document.getElementById('extrapWarn');
+
+  extrapWarn.classList.toggle('hidden', pct >= 30);
+
+  const resultPanel = document.getElementById('resultPanel');
+
+  if(pct >= 100){
+    termField.classList.add('hidden');
+    const total = price100 * areaToFloat(block.area);
+    resultPanel.innerHTML = `
+      <div class="label">Оплата 100% — сразу (курс ${fmt(RATE)} сум/$)</div>
+      <div class="big">${fmtSum(price100)} сум <span style="font-size:16px;color:var(--ink-soft)">/ м²</span></div>
+      <div class="sub">${fmtSum(total)} сум за квартиру · ~$${fmt(price100)}/м² · ~$${fmt(total)} за квартиру</div>
+    `;
+    document.getElementById('jokePanel').innerHTML = `<p>${ownerComment(block, 100, null)}</p>`;
+    return;
+  }
+
+  termField.classList.remove('hidden');
+  const termVal = Math.max(1, parseFloat(termInput.value) || 24);
+  const markupFull = markupForPct(block, pct);
+  const markupNow = markupFull * termVal / HORIZON;
+  const pricePerM2 = mround(price100 * (1 + markupNow), 5);
+  const total = pricePerM2 * areaToFloat(block.area);
+  const down = total * (pct/100);
+  const remaining = total - down;
+  const monthly = remaining / termVal;
+
+  resultPanel.innerHTML = `
+    <div class="label">Оплата ${pct}% · рассрочка ${termVal} мес. (курс ${fmt(INSTALLMENT_RATE)} сум/$)</div>
+    <div class="big">${fmtSumInstallment(pricePerM2)} сум <span style="font-size:16px;color:var(--ink-soft)">/ м²</span></div>
+    <div class="sub">${fmtSumInstallment(total)} сум за квартиру · ~$${fmt(pricePerM2)}/м² · ~$${fmt(total)} за квартиру</div>
+    <div class="detail"><span>Первый взнос</span><b>${fmtSumInstallment(down)} сум</b> <span style="opacity:.6">(~$${fmt(down)})</span></div>
+    <div class="detail"><span>Остаток в рассрочку</span><b>${fmtSumInstallment(remaining)} сум</b> <span style="opacity:.6">(~$${fmt(remaining)})</span></div>
+    <div class="detail"><span>Платёж в месяц</span><b>${fmtSumInstallment(monthly)} сум</b> <span style="opacity:.6">(~$${fmt(monthly)})</span></div>
+  `;
+
+  document.getElementById('jokePanel').innerHTML = `<p>${ownerComment(block, pct, termVal)}</p>`;
+}
+
+areaSelect.addEventListener('change', render);
+document.getElementById('pctInput').addEventListener('input', render);
+document.getElementById('termInput').addEventListener('input', render);
+document.getElementById('rate100Input').addEventListener('input', (e) => {
+  const v = parseFloat(e.target.value);
+  if(v > 0){ RATE = v; render(); }
+});
+document.getElementById('rateInstallmentInput').addEventListener('input', (e) => {
+  const v = parseFloat(e.target.value);
+  if(v > 0){ INSTALLMENT_RATE = v; render(); }
+});
+
+(async () => {
+  await loadFromAirtable();
+  render();
+})();
+</script>
+</body>
+</html>

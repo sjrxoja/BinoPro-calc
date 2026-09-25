@@ -179,6 +179,19 @@
   .joke p{ margin: 0 0 8px; }
   .joke p:last-child{ margin-bottom: 0; }
 
+  .lightbox{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(10,27,48,0.92);
+    z-index:999;
+    align-items:center;
+    justify-content:center;
+    padding:20px;
+    cursor:zoom-out;
+  }
+  .lightbox.open{ display:flex; }
+
   .hidden{ display:none; }
 </style>
 </head>
@@ -242,12 +255,12 @@
 
   <div class="panel" id="planPanel" style="text-align:center; cursor:pointer;">
     <label style="text-align:left;">План квартиры (нажмите, чтобы увеличить)</label>
-    <img id="planImg" src="" alt="План квартиры" style="max-width:100%; border:1px solid var(--line); border-radius:var(--radius);">
+    <img id="planImg" src="" alt="План квартиры" style="max-width:240px; width:100%; border:1px solid var(--line); border-radius:var(--radius);">
   </div>
 
 </div>
 
-<div id="lightbox" class="hidden" style="position:fixed; inset:0; background:rgba(10,27,48,0.92); z-index:999; display:flex; align-items:center; justify-content:center; padding:20px; cursor:zoom-out;">
+<div id="lightbox" class="lightbox">
   <img id="lightboxImg" src="" style="max-width:100%; max-height:100%; border-radius:4px;">
 </div>
 
@@ -463,10 +476,10 @@ function render(){
 areaSelect.addEventListener('change', render);
 
 document.getElementById('planPanel').addEventListener('click', () => {
-  document.getElementById('lightbox').classList.remove('hidden');
+  document.getElementById('lightbox').classList.add('open');
 });
 document.getElementById('lightbox').addEventListener('click', () => {
-  document.getElementById('lightbox').classList.add('hidden');
+  document.getElementById('lightbox').classList.remove('open');
 });
 document.getElementById('pctInput').addEventListener('input', render);
 document.getElementById('termInput').addEventListener('input', render);

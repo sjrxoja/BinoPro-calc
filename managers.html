@@ -422,7 +422,7 @@ function render(){
   const block = currentBlock();
   const sold = Math.min(block.sold, block.n - 1);
   const remainUnits = block.n - sold;
-  const price100 = block.prices[sold];
+  const price100 = block.prices[sold] + 100; // буфер +$100/м² для менеджерской версии
 
   const planSrc = PLANS[block.area];
   if(planSrc){

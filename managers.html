@@ -40,7 +40,7 @@
     display:flex;
     align-items:center;
   }
-  .brand-header img{ height: 40px; display:block; }
+  .brand-header img{ height: 60px; display:block; }
 
   .masthead{
     display:flex;
@@ -181,36 +181,6 @@
   .lightbox.open{ display:flex; }
 
   .hidden{ display:none; }
-
-  #printView{ display:none; }
-
-  @media print{
-    @page{ size: A4 portrait; margin: 12mm 14mm; }
-    body *{ visibility:hidden; }
-    #printView, #printView *{ visibility:visible; }
-    #printView{
-      display:block;
-      position:absolute; left:0; top:0; width:100%;
-      font-family: Georgia, 'Times New Roman', serif;
-      color:#0A1B30;
-    }
-    .p-header{ background:#0A1B30; padding:6mm 8mm; border-radius:2mm; margin-bottom:6mm; }
-    .p-header img{ height:22px; display:block; }
-    .p-title h1{ font-size:20pt; font-weight:400; margin:0 0 2mm; }
-    .p-title .p-subtitle{ font-family: Arial, sans-serif; font-size:9.5pt; color:#566072; margin-bottom:6mm; }
-    .p-content{ display:flex; flex-direction:column; gap:5mm; }
-    .p-plan{ width:100%; text-align:center; }
-    .p-plan img{ max-width:100%; max-height:150mm; border:1px solid #DDE3E8; border-radius:2mm; }
-    .p-price{ display:flex; flex-direction:row; gap:5mm; margin-top:2mm; }
-    .p-card{ flex:1; border:1px solid #DDE3E8; border-radius:2mm; padding:5mm 6mm; }
-    .p-card.accent{ border-color:#0F7F86; background:#F2F9F9; }
-    .p-card .p-label{ font-family: Arial, sans-serif; font-size:9pt; color:#566072; margin-bottom:2mm; }
-    .p-card .p-big{ font-size:17pt; margin-bottom:1mm; }
-    .p-card .p-total{ font-family: Arial, sans-serif; font-size:10pt; color:#566072; margin-bottom:3mm; }
-    .p-card .p-detail{ font-family: Arial, sans-serif; font-size:9.5pt; color:#566072; display:flex; justify-content:space-between; padding:2mm 0; border-top:1px solid #DDE3E8; }
-    .p-card .p-detail b{ color:#0A1B30; font-weight:normal; }
-    .p-footer{ margin-top:6mm; text-align:center; font-family: Arial, sans-serif; font-size:8pt; color:#95A0AD; }
-  }
 </style>
 </head>
 <body>
@@ -257,24 +227,9 @@
 
   <div class="panel" id="planPanel" style="text-align:center; cursor:pointer;">
     <label style="text-align:left;">План квартиры (нажмите, чтобы увеличить)</label>
-    <img id="planImg" src="" alt="План квартиры" style="max-width:480px; width:100%; border:1px solid var(--line); border-radius:var(--radius);">
+    <img id="planImg" src="" alt="План квартиры" style="max-width:100%; width:100%; border:1px solid var(--line); border-radius:var(--radius);">
   </div>
 
-  <button id="printBtn" style="margin-top:14px; width:100%; padding:12px; border-radius:4px; border:1px solid var(--brass); background:var(--brass); color:#fff; font-family:Georgia,serif; font-size:15px; cursor:pointer;">🖨 Печать для клиента (А4)</button>
-
-</div>
-
-<div id="printView">
-  <div class="p-header"><img id="printLogo" src="" alt="BinoPro"></div>
-  <div class="p-title">
-    <h1 id="printTitle"></h1>
-    <div class="p-subtitle" id="printSubtitle"></div>
-  </div>
-  <div class="p-content">
-    <div class="p-plan"><img id="printPlanImg" src=""></div>
-    <div class="p-price" id="printPriceCol"></div>
-  </div>
-  <div class="p-footer">BinoPro · Консалтинг · Маркетинг · Продажи в девелопменте</div>
 </div>
 
 <div id="lightbox" class="lightbox">
@@ -409,15 +364,6 @@ const ROOMS = {
   "87,75": "3-комнатная", "111,31": "4-комнатная",
 };
 
-function updatePrintView(block, sold, remainUnits, price100, pct, cards){
-  document.getElementById('printLogo').src = document.querySelector('.brand-header img').src;
-  document.getElementById('printTitle').textContent = `${ROOMS[block.area] || ''} квартира`.trim();
-  document.getElementById('printSubtitle').textContent = `${block.area} м²`;
-  const planSrc = PLANS[block.area];
-  document.getElementById('printPlanImg').src = planSrc || '';
-  document.getElementById('printPriceCol').innerHTML = cards;
-}
-
 function render(){
   const block = currentBlock();
   const sold = Math.min(block.sold, block.n - 1);
@@ -450,12 +396,6 @@ function render(){
       <div class="big">${fmtSum(total)} сум</div>
     `;
 
-    updatePrintView(block, sold, remainUnits, price100, 100, `
-      <div class="p-card accent">
-        <div class="p-label">Оплата 100% — сразу</div>
-        <div class="p-big">${fmtSum(total)} сум</div>
-      </div>
-    `);
     return;
   }
 
@@ -476,26 +416,9 @@ function render(){
     <div class="detail"><span>Остаток в рассрочку</span><b>${fmtSumInstallment(remaining)} сум</b></div>
     <div class="detail"><span>Платёж в месяц</span><b>${fmtSumInstallment(monthly)} сум</b></div>
   `;
-
-  updatePrintView(block, sold, remainUnits, price100, pct, `
-    <div class="p-card">
-      <div class="p-label">Оплата 100%</div>
-      <div class="p-big">${fmtSum(price100 * areaToFloat(block.area))} сум</div>
-    </div>
-    <div class="p-card accent">
-      <div class="p-label">Взнос ${pct}% · рассрочка ${termVal} мес.</div>
-      <div class="p-big">${fmtSumInstallment(total)} сум</div>
-      <div class="p-detail"><span>Первый взнос</span><b>${fmtSumInstallment(down)} сум</b></div>
-      <div class="p-detail"><span>Платёж в месяц</span><b>${fmtSumInstallment(monthly)} сум</b></div>
-    </div>
-  `);
 }
 
 areaSelect.addEventListener('change', render);
-
-document.getElementById('printBtn').addEventListener('click', () => {
-  window.print();
-});
 
 document.getElementById('planPanel').addEventListener('click', () => {
   document.getElementById('lightbox').classList.add('open');

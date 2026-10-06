@@ -77,6 +77,15 @@
     margin-bottom: 18px;
   }
 
+  .view-row{ display:flex; justify-content:flex-end; margin:4px 0; }
+  .view-row.bottom{ margin-top:8px; margin-bottom:0; }
+  .view-row .view-tag{
+    display:flex; align-items:center; gap:6px;
+    font-family: Georgia, serif; font-size:13px; color:var(--ink);
+  }
+  .view-row .view-tag svg{ width:16px; height:16px; flex:none; }
+  .view-row.hidden{ display:none; }
+
   label{
     display:block;
     font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
@@ -209,6 +218,7 @@
     .p-title .p-block{ font-family: Georgia, serif; font-size:16pt; color:#0A1B30; white-space:nowrap; }
     .p-subtitle{ font-family: Arial, sans-serif; font-size:13pt; color:#566072; margin:0 0 2mm; }
     .p-view-row{ display:flex; justify-content:flex-end; margin-bottom:2mm; }
+    .p-view-row.bottom{ margin-bottom:0; margin-top:2mm; }
     .p-view{ display:flex; align-items:center; gap:2mm; font-family: Georgia, serif; font-size:13pt; color:#0A1B30; }
     .p-view .eye{ width:20px; height:20px; }
     .p-content{ display:flex; flex-direction:column; gap:5mm; }
@@ -271,7 +281,13 @@
 
   <div class="panel" id="planPanel" style="text-align:center; cursor:pointer;">
     <label style="text-align:left;">План квартиры (нажмите, чтобы увеличить)</label>
+    <div class="view-row hidden" id="viewRowTop">
+      <div class="view-tag"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><span id="viewTextTop"></span></div>
+    </div>
     <img id="planImg" src="" alt="План квартиры" style="max-width:100%; width:100%; border:1px solid var(--line); border-radius:var(--radius);">
+    <div class="view-row bottom hidden" id="viewRowBottom">
+      <div class="view-tag"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.4"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><span id="viewTextBottom"></span></div>
+    </div>
   </div>
 
   <button id="printBtn" style="margin-top:14px; width:100%; padding:12px; border-radius:4px; border:1px solid var(--brass); background:var(--brass); color:#fff; font-family:Georgia,serif; font-size:15px; cursor:pointer;">🖨 Печать для клиента (А4)</button>
@@ -285,14 +301,22 @@
     <div class="p-block">Блок Б-2/1</div>
   </div>
   <div class="p-subtitle" id="printSubtitle"></div>
-  <div class="p-view-row">
+  <div class="p-view-row" id="printViewRowTop">
     <div class="p-view">
       <svg class="eye" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="#0A1B30" stroke-width="1.4"/><circle cx="12" cy="12" r="4" fill="#0A1B30"/></svg>
-      <span id="printView2"></span>
+      <span id="printViewTop"></span>
     </div>
   </div>
   <div class="p-content">
-    <div class="p-plan"><img id="printPlanImg" src=""></div>
+    <div class="p-plan">
+      <img id="printPlanImg" src="">
+      <div class="p-view-row bottom hidden" id="printViewRowBottom">
+        <div class="p-view">
+          <svg class="eye" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" stroke="#0A1B30" stroke-width="1.4"/><circle cx="12" cy="12" r="4" fill="#0A1B30"/></svg>
+          <span id="printViewBottom"></span>
+        </div>
+      </div>
+    </div>
     <div class="p-price" id="printPriceCol"></div>
   </div>
 </div>
@@ -429,16 +453,25 @@ const ROOMS = {
   "87,75": "3-комнатная", "111,31": "4-комнатная",
 };
 const VIEWS = {
-  "26,30": "вид во двор", "39,35": "вид во двор", "46,79": "вид во двор",
-  "51,34": "вид на улицу", "51,94": "вид на улицу", "52,62": "вид на улицу",
-  "87,75": "вид во двор и на улицу", "111,31": "вид во двор и на улицу",
+  "26,30": { top: "вид во двор" },
+  "39,35": { top: "вид во двор" },
+  "46,79": { top: "вид во двор" },
+  "51,34": { top: "вид на улицу" },
+  "51,94": { top: "вид на улицу" },
+  "52,62": { top: "вид на улицу" },
+  "87,75": { top: "вид во двор", bottom: "вид на улицу" },
+  "111,31": { top: "вид во двор", bottom: "вид на улицу" },
 };
 
 function updatePrintView(block, price100, pct, cards){
   // printLogo уже задан статичным прозрачным чёрным вариантом ниже, копирование из шапки не нужно
   document.getElementById('printTitle').textContent = `${ROOMS[block.area] || ''} квартира`.trim();
   document.getElementById('printSubtitle').textContent = `${block.area} м²`;
-  document.getElementById('printView2').textContent = VIEWS[block.area] || '';
+  const views = VIEWS[block.area] || {};
+  document.getElementById('printViewTop').textContent = views.top || '';
+  document.getElementById('printViewRowTop').classList.toggle('hidden', !views.top);
+  document.getElementById('printViewBottom').textContent = views.bottom || '';
+  document.getElementById('printViewRowBottom').classList.toggle('hidden', !views.bottom);
   const planSrc = PLANS[block.area];
   document.getElementById('printPlanImg').src = planSrc || '';
   document.getElementById('printPriceCol').innerHTML = cards;
@@ -458,6 +491,12 @@ function render(){
   } else {
     document.getElementById('planPanel').classList.add('hidden');
   }
+
+  const screenViews = VIEWS[block.area] || {};
+  document.getElementById('viewTextTop').textContent = screenViews.top || '';
+  document.getElementById('viewRowTop').classList.toggle('hidden', !screenViews.top);
+  document.getElementById('viewTextBottom').textContent = screenViews.bottom || '';
+  document.getElementById('viewRowBottom').classList.toggle('hidden', !screenViews.bottom);
 
   const pct = parseFloat(document.getElementById('pctInput').value) || 100;
   const termInput = document.getElementById('termInput');
